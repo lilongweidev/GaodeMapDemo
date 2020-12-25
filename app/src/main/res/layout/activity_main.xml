@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!--地图-->
+    <com.amap.api.maps.MapView
+        android:id="@+id/map_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!--浮动按钮-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_poi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="20dp"
+        android:clickable="true"
+        android:onClick="queryPOI"
+        android:src="@drawable/icon_favorite_red"
+        android:visibility="gone"
+        app:backgroundTint="#FFF"
+        app:backgroundTintMode="screen"
+        app:hoveredFocusedTranslationZ="18dp"
+        app:pressedTranslationZ="18dp" />
+
+</RelativeLayout>
