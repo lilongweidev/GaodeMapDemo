@@ -6,13 +6,36 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimaryDark"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp">
+
+        <EditText
+            android:id="@+id/et_address"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/et_bg"
+            android:hint="请输入地址"
+            android:imeOptions="actionSearch"
+            android:paddingStart="12dp"
+            android:singleLine="true"
+            android:textColor="#000"
+            android:textSize="14sp" />
+    </androidx.appcompat.widget.Toolbar>
+
     <!--地图-->
     <com.amap.api.maps.MapView
         android:id="@+id/map_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar" />
 
-    <!--浮动按钮-->
+    <!--浮动按钮 获取poi-->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_poi"
         android:layout_width="wrap_content"
@@ -22,9 +45,28 @@
         android:layout_margin="20dp"
         android:clickable="true"
         android:onClick="queryPOI"
+        app:fabSize="mini"
         android:src="@drawable/icon_favorite_red"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:backgroundTint="#FFF"
+        app:backgroundTintMode="screen"
+        app:hoveredFocusedTranslationZ="18dp"
+        app:pressedTranslationZ="18dp" />
+
+    <!--浮动按钮 清空marker-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_clear_marker"
+        android:layout_width="wrap_content"
+        android:layout_above="@+id/fab_poi"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="20dp"
+        android:clickable="true"
+        android:onClick="clearAllMarker"
+        app:fabSize="mini"
+        android:src="@drawable/icon_clear"
+        app:backgroundTint="#FFF"
+        android:visibility="invisible"
         app:backgroundTintMode="screen"
         app:hoveredFocusedTranslationZ="18dp"
         app:pressedTranslationZ="18dp" />

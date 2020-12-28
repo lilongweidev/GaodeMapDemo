@@ -4,11 +4,16 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.amap.api.location.AMapLocation;
@@ -20,23 +25,38 @@ import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.UiSettings;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
+import com.amap.api.maps.model.LatLng;
+import com.amap.api.maps.model.Marker;
+import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
+import com.amap.api.services.geocoder.GeocodeAddress;
+import com.amap.api.services.geocoder.GeocodeQuery;
+import com.amap.api.services.geocoder.GeocodeResult;
+import com.amap.api.services.geocoder.GeocodeSearch;
+import com.amap.api.services.geocoder.RegeocodeAddress;
+import com.amap.api.services.geocoder.RegeocodeQuery;
+import com.amap.api.services.geocoder.RegeocodeResult;
 import com.amap.api.services.poisearch.PoiResult;
 import com.amap.api.services.poisearch.PoiSearch;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
 /**
  * 主页面
+ *
  * @author llw
  */
 public class MainActivity extends AppCompatActivity implements
-        AMapLocationListener, LocationSource, PoiSearch.OnPoiSearchListener {
+        AMapLocationListener, LocationSource, PoiSearch.OnPoiSearchListener,
+        AMap.OnMapClickListener, AMap.OnMapLongClickListener,
+        GeocodeSearch.OnGeocodeSearchListener, EditText.OnKeyListener {
 
     //请求权限码
     private static final int REQUEST_PERMISSIONS = 9527;
@@ -67,12 +87,34 @@ public class MainActivity extends AppCompatActivity implements
     //浮动按钮
     private FloatingActionButton fabPOI;
 
+    //地理编码搜索
+    private GeocodeSearch geocodeSearch;
+    //解析成功标识码
+    private static final int PARSE_SUCCESS_CODE = 1000;
+
+    //输入框
+    private EditText etAddress;
+
+    //浮动按钮  清空地图标点
+    private FloatingActionButton fabClearMarker;
+
+    //标点列表
+    private List<Marker> markerList = new ArrayList<>();
+
+    //标点
+    //private Marker marker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         fabPOI = findViewById(R.id.fab_poi);
+        fabClearMarker = findViewById(R.id.fab_clear_marker);
+
+        etAddress = findViewById(R.id.et_address);
+        //键盘按键监听
+        etAddress.setOnKeyListener(this);
 
         //初始化定位
         initLocation();
@@ -149,6 +191,16 @@ public class MainActivity extends AppCompatActivity implements
         aMap.setLocationSource(this);
         // 设置为true表示显示定位层并可触发定位，false表示隐藏定位层并不可触发定位，默认是false
         aMap.setMyLocationEnabled(true);
+
+        //设置地图点击事件
+        aMap.setOnMapClickListener(this);
+        //设置地图长按事件
+        aMap.setOnMapLongClickListener(this);
+
+        //构造 GeocodeSearch 对象
+        geocodeSearch = new GeocodeSearch(this);
+        //设置监听
+        geocodeSearch.setOnGeocodeSearchListener(this);
     }
 
     /**
@@ -355,5 +407,144 @@ public class MainActivity extends AppCompatActivity implements
         poiSearch.setOnPoiSearchListener(this);
         //发起搜索附近POI异步请求
         poiSearch.searchPOIAsyn();
+    }
+
+    /**
+     * 地图单击事件
+     *
+     * @param latLng
+     */
+    @Override
+    public void onMapClick(LatLng latLng) {
+        //通过经纬度获取地址
+        //latlonToAddress(latLng);
+
+        addMarker(latLng);
+    }
+
+    /**
+     * 地图长按事件
+     *
+     * @param latLng
+     */
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        //通过经纬度获取地址
+        latlonToAddress(latLng);
+    }
+
+    /**
+     * 添加地图标点
+     *
+     * @param latLng
+     */
+    private void addMarker(LatLng latLng) {
+        //显示浮动按钮
+        fabClearMarker.show();
+        //添加标点
+        Marker marker = aMap.addMarker(new MarkerOptions().position(latLng).snippet("DefaultMarker"));
+        markerList.add(marker);
+    }
+
+    /**
+     * 通过经纬度获取地址
+     *
+     * @param latLng
+     */
+    private void latlonToAddress(LatLng latLng) {
+        //位置点  通过经纬度进行构建
+        LatLonPoint latLonPoint = new LatLonPoint(latLng.latitude, latLng.longitude);
+        //逆编码查询  第一个参数表示一个Latlng，第二参数表示范围多少米，第三个参数表示是火系坐标系还是GPS原生坐标系
+        RegeocodeQuery query = new RegeocodeQuery(latLonPoint, 20, GeocodeSearch.AMAP);
+        //异步获取地址信息
+        geocodeSearch.getFromLocationAsyn(query);
+    }
+
+    /**
+     * 坐标转地址
+     *
+     * @param regeocodeResult
+     * @param rCode
+     */
+    @Override
+    public void onRegeocodeSearched(RegeocodeResult regeocodeResult, int rCode) {
+        //解析result获取地址描述信息
+        if (rCode == PARSE_SUCCESS_CODE) {
+            RegeocodeAddress regeocodeAddress = regeocodeResult.getRegeocodeAddress();
+            //显示解析后的地址
+            Log.d("MainActivity", regeocodeAddress.getFormatAddress());
+            //showMsg("地址：" + regeocodeAddress.getFormatAddress());
+
+            LatLonPoint latLonPoint = regeocodeResult.getRegeocodeQuery().getPoint();
+            LatLng latLng = new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude());
+            addMarker(latLng);
+        } else {
+            showMsg("获取地址失败");
+        }
+
+    }
+
+    /**
+     * 地址转坐标
+     *
+     * @param geocodeResult
+     * @param rCode
+     */
+    @Override
+    public void onGeocodeSearched(GeocodeResult geocodeResult, int rCode) {
+        if (rCode == PARSE_SUCCESS_CODE) {
+            List<GeocodeAddress> geocodeAddressList = geocodeResult.getGeocodeAddressList();
+            if (geocodeAddressList != null && geocodeAddressList.size() > 0) {
+                LatLonPoint latLonPoint = geocodeAddressList.get(0).getLatLonPoint();
+                //显示解析后的坐标
+                showMsg("坐标：" + latLonPoint.getLongitude() + "，" + latLonPoint.getLatitude());
+            }
+
+        } else {
+            showMsg("获取坐标失败");
+        }
+    }
+
+    /**
+     * 键盘点击
+     *
+     * @param v
+     * @param keyCode
+     * @param event
+     * @return
+     */
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+            //获取输入框的值
+            String address = etAddress.getText().toString().trim();
+            if (address == null || address.isEmpty()) {
+                showMsg("请输入地址");
+            } else {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                //隐藏软键盘
+                imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+
+                // name表示地址，第二个参数表示查询城市，中文或者中文全拼，citycode、adcode
+                GeocodeQuery query = new GeocodeQuery(address, "深圳");
+                geocodeSearch.getFromLocationNameAsyn(query);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 清空地图Marker
+     *
+     * @param view
+     */
+    public void clearAllMarker(View view) {
+        if (markerList != null && markerList.size()>0){
+            for (Marker markerItem : markerList) {
+                markerItem.remove();
+            }
+        }
+        fabClearMarker.hide();
     }
 }
