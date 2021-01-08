@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -29,6 +30,8 @@ import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.maps.model.animation.Animation;
+import com.amap.api.maps.model.animation.RotateAnimation;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
 import com.amap.api.services.geocoder.GeocodeAddress;
@@ -56,10 +59,12 @@ import pub.devrel.easypermissions.EasyPermissions;
 public class MainActivity extends AppCompatActivity implements
         AMapLocationListener, LocationSource, PoiSearch.OnPoiSearchListener,
         AMap.OnMapClickListener, AMap.OnMapLongClickListener,
-        GeocodeSearch.OnGeocodeSearchListener, EditText.OnKeyListener {
+        GeocodeSearch.OnGeocodeSearchListener, EditText.OnKeyListener,
+        AMap.OnMarkerClickListener, AMap.OnMarkerDragListener {
 
     //请求权限码
     private static final int REQUEST_PERMISSIONS = 9527;
+    private static final String TAG = "MainActivity";
 
     //声明AMapLocationClient类对象
     public AMapLocationClient mLocationClient = null;
@@ -101,8 +106,6 @@ public class MainActivity extends AppCompatActivity implements
     //标点列表
     private List<Marker> markerList = new ArrayList<>();
 
-    //标点
-    //private Marker marker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -196,6 +199,12 @@ public class MainActivity extends AppCompatActivity implements
         aMap.setOnMapClickListener(this);
         //设置地图长按事件
         aMap.setOnMapLongClickListener(this);
+        //设置地图Marker点击事件
+        aMap.setOnMarkerClickListener(this);
+
+
+        //设置地图Marker拖拽事件
+        aMap.setOnMarkerDragListener(this);
 
         //构造 GeocodeSearch 对象
         geocodeSearch = new GeocodeSearch(this);
@@ -231,8 +240,8 @@ public class MainActivity extends AppCompatActivity implements
 
         if (EasyPermissions.hasPermissions(this, permissions)) {
             //true 有权限 开始定位
-            showMsg("已获得权限，可以定位啦！");
-
+            //showMsg("已获得权限，可以定位啦！");
+            Log.d(TAG, "已获得权限，可以定位啦！");
             //启动定位
             mLocationClient.startLocation();
         } else {
@@ -442,7 +451,20 @@ public class MainActivity extends AppCompatActivity implements
         //显示浮动按钮
         fabClearMarker.show();
         //添加标点
-        Marker marker = aMap.addMarker(new MarkerOptions().position(latLng).snippet("DefaultMarker"));
+        Marker marker = aMap.addMarker(new MarkerOptions()
+                .draggable(true)//可拖动
+                .position(latLng)
+                .snippet("DefaultMarker"));
+
+        //设置标点的绘制动画效果
+        Animation animation = new RotateAnimation(marker.getRotateAngle(), marker.getRotateAngle() + 180, 0, 0, 0);
+        long duration = 1000L;
+        animation.setDuration(duration);
+        animation.setInterpolator(new LinearInterpolator());
+
+        marker.setAnimation(animation);
+        marker.startAnimation();
+
         markerList.add(marker);
     }
 
@@ -540,11 +562,50 @@ public class MainActivity extends AppCompatActivity implements
      * @param view
      */
     public void clearAllMarker(View view) {
-        if (markerList != null && markerList.size()>0){
+        if (markerList != null && markerList.size() > 0) {
             for (Marker markerItem : markerList) {
                 markerItem.remove();
             }
         }
         fabClearMarker.hide();
+    }
+
+    /**
+     * Marker点击事件
+     *
+     * @param marker
+     * @return
+     */
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        showMsg("点击了标点");
+        return true;
+    }
+
+    /**
+     * 开始拖动
+     * @param marker
+     */
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+        Log.d(TAG,"开始拖动");
+    }
+
+    /**
+     * 拖动中
+     * @param marker
+     */
+    @Override
+    public void onMarkerDrag(Marker marker) {
+        Log.d(TAG,"拖动中");
+    }
+
+    /**
+     * 拖动完成
+     * @param marker
+     */
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+        Log.d(TAG,"拖动完成");
     }
 }
