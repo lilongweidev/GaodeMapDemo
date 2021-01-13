@@ -9,12 +9,16 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amap.api.location.AMapLocation;
@@ -60,7 +64,8 @@ public class MainActivity extends AppCompatActivity implements
         AMapLocationListener, LocationSource, PoiSearch.OnPoiSearchListener,
         AMap.OnMapClickListener, AMap.OnMapLongClickListener,
         GeocodeSearch.OnGeocodeSearchListener, EditText.OnKeyListener,
-        AMap.OnMarkerClickListener, AMap.OnMarkerDragListener {
+        AMap.OnMarkerClickListener, AMap.OnMarkerDragListener,
+        AMap.InfoWindowAdapter, AMap.OnInfoWindowClickListener {
 
     //请求权限码
     private static final int REQUEST_PERMISSIONS = 9527;
@@ -202,9 +207,14 @@ public class MainActivity extends AppCompatActivity implements
         //设置地图Marker点击事件
         aMap.setOnMarkerClickListener(this);
 
-
         //设置地图Marker拖拽事件
         aMap.setOnMarkerDragListener(this);
+
+        //设置InfoWindowAdapter监听
+        aMap.setInfoWindowAdapter(this);
+
+        //设置InfoWindow点击事件
+        aMap.setOnInfoWindowClickListener(this);
 
         //构造 GeocodeSearch 对象
         geocodeSearch = new GeocodeSearch(this);
@@ -454,7 +464,11 @@ public class MainActivity extends AppCompatActivity implements
         Marker marker = aMap.addMarker(new MarkerOptions()
                 .draggable(true)//可拖动
                 .position(latLng)
-                .snippet("DefaultMarker"));
+                .title("标题")
+                .snippet("详细信息"));
+
+        //绘制Marker时显示InfoWindow
+        //marker.showInfoWindow();
 
         //设置标点的绘制动画效果
         Animation animation = new RotateAnimation(marker.getRotateAngle(), marker.getRotateAngle() + 180, 0, 0, 0);
@@ -578,34 +592,120 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public boolean onMarkerClick(Marker marker) {
-        showMsg("点击了标点");
+        //showMsg("点击了标点");
+        //显示InfoWindow
+        if (!marker.isInfoWindowShown()) {
+            //显示
+            marker.showInfoWindow();
+        } else {
+            //隐藏
+            marker.hideInfoWindow();
+        }
         return true;
     }
 
     /**
      * 开始拖动
+     *
      * @param marker
      */
     @Override
     public void onMarkerDragStart(Marker marker) {
-        Log.d(TAG,"开始拖动");
+        Log.d(TAG, "开始拖动");
     }
 
     /**
      * 拖动中
+     *
      * @param marker
      */
     @Override
     public void onMarkerDrag(Marker marker) {
-        Log.d(TAG,"拖动中");
+        Log.d(TAG, "拖动中");
     }
 
     /**
      * 拖动完成
+     *
      * @param marker
      */
     @Override
     public void onMarkerDragEnd(Marker marker) {
-        Log.d(TAG,"拖动完成");
+        Log.d(TAG, "拖动完成");
+    }
+
+    /**
+     * 修改内容
+     *
+     * @param marker
+     * @return
+     */
+    @Override
+    public View getInfoContents(Marker marker) {
+        View infoContent = getLayoutInflater().inflate(
+                R.layout.custom_info_contents, null);
+        render(marker, infoContent);
+        return infoContent;
+    }
+
+    /**
+     * 修改背景
+     *
+     * @param marker
+     */
+    @Override
+    public View getInfoWindow(Marker marker) {
+        View infoWindow = getLayoutInflater().inflate(
+                R.layout.custom_info_window, null);
+
+        render(marker, infoWindow);
+        return infoWindow;
+    }
+
+    /**
+     * 渲染
+     *
+     * @param marker
+     * @param view
+     */
+    private void render(Marker marker, View view) {
+        ((ImageView) view.findViewById(R.id.badge))
+                .setImageResource(R.drawable.icon_yuan);
+
+        //修改InfoWindow标题内容样式
+        String title = marker.getTitle();
+        TextView titleUi = ((TextView) view.findViewById(R.id.title));
+        if (title != null) {
+            SpannableString titleText = new SpannableString(title);
+            titleText.setSpan(new ForegroundColorSpan(Color.RED), 0,
+                    titleText.length(), 0);
+            titleUi.setTextSize(15);
+            titleUi.setText(titleText);
+
+        } else {
+            titleUi.setText("");
+        }
+        //修改InfoWindow片段内容样式
+        String snippet = marker.getSnippet();
+        TextView snippetUi = ((TextView) view.findViewById(R.id.snippet));
+        if (snippet != null) {
+            SpannableString snippetText = new SpannableString(snippet);
+            snippetText.setSpan(new ForegroundColorSpan(Color.GREEN), 0,
+                    snippetText.length(), 0);
+            snippetUi.setTextSize(20);
+            snippetUi.setText(snippetText);
+        } else {
+            snippetUi.setText("");
+        }
+    }
+
+    /**
+     * InfoWindow点击事件
+     *
+     * @param marker
+     */
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        showMsg("弹窗内容：标题：" + marker.getTitle() + "\n片段：" + marker.getSnippet());
     }
 }
