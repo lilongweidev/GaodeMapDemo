@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Build;
@@ -26,10 +27,14 @@ import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.maps.AMap;
+import com.amap.api.maps.AMapOptions;
+import com.amap.api.maps.CameraUpdate;
+import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
 import com.amap.api.maps.UiSettings;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
+import com.amap.api.maps.model.CameraPosition;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
@@ -110,6 +115,7 @@ public class MainActivity extends AppCompatActivity implements
 
     //标点列表
     private List<Marker> markerList = new ArrayList<>();
+
 
 
     @Override
@@ -437,8 +443,29 @@ public class MainActivity extends AppCompatActivity implements
     public void onMapClick(LatLng latLng) {
         //通过经纬度获取地址
         //latlonToAddress(latLng);
-
+        //添加标点
         addMarker(latLng);
+        //改变地图中心点
+        updateMapCenter(latLng);
+    }
+
+    /**
+     * 改变地图中心位置
+     * @param latLng 位置
+     */
+    private void updateMapCenter(LatLng latLng) {
+        // CameraPosition 第一个参数： 目标位置的屏幕中心点经纬度坐标。
+        // CameraPosition 第二个参数： 目标可视区域的缩放级别
+        // CameraPosition 第三个参数： 目标可视区域的倾斜度，以角度为单位。
+        // CameraPosition 第四个参数： 可视区域指向的方向，以角度为单位，从正北向顺时针方向计算，从0度到360度
+        CameraPosition cameraPosition = new CameraPosition(latLng, 16, 30, 0);
+        //位置变更
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newCameraPosition(cameraPosition);
+        //改变位置
+        //aMap.moveCamera(cameraUpdate);
+        //带动画的移动
+        aMap.animateCamera(cameraUpdate);
+
     }
 
     /**
@@ -707,5 +734,13 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onInfoWindowClick(Marker marker) {
         showMsg("弹窗内容：标题：" + marker.getTitle() + "\n片段：" + marker.getSnippet());
+    }
+
+    /**
+     * 进入路线规划
+     * @param view
+     */
+    public void jumpRouteActivity(View view) {
+        startActivity(new Intent(this,RouteActivity.class));
     }
 }

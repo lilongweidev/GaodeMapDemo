@@ -71,4 +71,21 @@
         app:hoveredFocusedTranslationZ="18dp"
         app:pressedTranslationZ="18dp" />
 
+    <!--浮动按钮 跳转路线Activity-->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_route"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/fab_poi"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:clickable="true"
+        android:onClick="jumpRouteActivity"
+        app:fabSize="mini"
+        android:src="@drawable/icon_route"
+        app:backgroundTint="#FFF"
+        app:backgroundTintMode="screen"
+        app:hoveredFocusedTranslationZ="18dp"
+        app:pressedTranslationZ="18dp" />
+
 </RelativeLayout>
