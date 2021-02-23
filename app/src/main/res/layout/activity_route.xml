@@ -32,7 +32,58 @@
     <!--地图-->
     <com.amap.api.maps.MapView
         android:id="@+id/map_view"
-        android:layout_below="@+id/top_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_below="@+id/top_layout" />
+
+    <!--底部规划时间详情-->
+    <RelativeLayout
+        android:id="@+id/bottom_layout"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_alignParentBottom="true"
+        android:background="#FFF"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:paddingEnd="12dp"
+            android:singleLine="true"
+            android:textColor="#333333"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:text="详情"
+                android:textColor="#4c90f9"
+                android:textSize="14sp" />
+
+            <Button
+
+                android:layout_width="7dp"
+                android:layout_height="13dp"
+                android:layout_marginStart="4dp"
+                android:background="@mipmap/arrow_right_blue"
+                android:gravity="center_vertical" />
+        </LinearLayout>
+    </RelativeLayout>
+
 </RelativeLayout>

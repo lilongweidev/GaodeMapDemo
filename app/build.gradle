@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.llw.mapdemo"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -36,5 +36,7 @@ dependencies {
     implementation 'pub.devrel:easypermissions:3.0.0'
     //Material库
     implementation 'com.google.android.material:material:1.2.0'
+    //RecyclerView的好搭档
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.30'
 
 }

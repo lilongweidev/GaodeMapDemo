@@ -8,4 +8,12 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!--详情页面主题-->
+    <style name="DetailTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#FFF</item>
+        <item name="colorPrimaryDark">#FFF</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
 </resources>

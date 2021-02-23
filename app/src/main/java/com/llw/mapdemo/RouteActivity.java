@@ -33,7 +33,6 @@ import com.amap.api.services.route.DrivePath;
 import com.amap.api.services.route.DriveRouteResult;
 import com.amap.api.services.route.RidePath;
 import com.amap.api.services.route.RideRouteResult;
-import com.amap.api.services.route.RouteResult;
 import com.amap.api.services.route.RouteSearch;
 import com.amap.api.services.route.WalkPath;
 import com.amap.api.services.route.WalkRouteResult;
@@ -89,6 +88,10 @@ public class RouteActivity extends AppCompatActivity implements
     //城市
     private String city;
 
+    //路线规划详情
+    private RelativeLayout bottomLayout;
+    //花费时间
+    private TextView tvTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +115,10 @@ public class RouteActivity extends AppCompatActivity implements
      */
     private void initTravelMode() {
         Spinner spinner = findViewById(R.id.spinner);
+
+        bottomLayout = findViewById(R.id.bottom_layout);
+
+        tvTime = findViewById(R.id.tv_time);
 
         //将可选内容与ArrayAdapter连接起来
         arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, travelModeArray);
@@ -299,7 +306,19 @@ public class RouteActivity extends AppCompatActivity implements
                     int dis = (int) busPath.getDistance();
                     int dur = (int) busPath.getDuration();
                     String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
-                    Log.d(TAG, des);
+
+                    tvTime.setText(des);
+                    bottomLayout.setVisibility(View.VISIBLE);
+                    bottomLayout.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(RouteActivity.this,
+                                    RouteDetailActivity.class);
+                            intent.putExtra("type",3);
+                            intent.putExtra("path", busPath);
+                            startActivity(intent);
+                        }
+                    });
                 } else if (busRouteResult.getPaths() == null) {
                     showMsg("对不起，没有搜索到相关数据！");
                 }
@@ -339,7 +358,19 @@ public class RouteActivity extends AppCompatActivity implements
                     int dis = (int) drivePath.getDistance();
                     int dur = (int) drivePath.getDuration();
                     String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
-                    Log.d(TAG, des);
+
+                    tvTime.setText(des);
+                    bottomLayout.setVisibility(View.VISIBLE);
+                    bottomLayout.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(RouteActivity.this,
+                                    RouteDetailActivity.class);
+                            intent.putExtra("type",2);
+                            intent.putExtra("path", drivePath);
+                            startActivity(intent);
+                        }
+                    });
                 } else if (driveRouteResult.getPaths() == null) {
                     showMsg("对不起，没有搜索到相关数据！");
                 }
@@ -378,9 +409,21 @@ public class RouteActivity extends AppCompatActivity implements
 
                     int dis = (int) walkPath.getDistance();
                     int dur = (int) walkPath.getDuration();
-                    String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
-                    Log.d(TAG, des);
-
+                    String des = MapUtil.getFriendlyTime(dur)+"("+MapUtil.getFriendlyLength(dis)+")";
+                    //显示步行花费时间
+                    tvTime.setText(des);
+                    bottomLayout.setVisibility(View.VISIBLE);
+                    //跳转到路线详情页面
+                    bottomLayout.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(RouteActivity.this,
+                                    RouteDetailActivity.class);
+                            intent.putExtra("type",0);
+                            intent.putExtra("path", walkPath);
+                            startActivity(intent);
+                        }
+                    });
                 } else if (walkRouteResult.getPaths() == null) {
                     showMsg("对不起，没有搜索到相关数据！");
                 }
@@ -399,7 +442,7 @@ public class RouteActivity extends AppCompatActivity implements
      * @param code            结果码
      */
     @Override
-    public void onRideRouteSearched(final RideRouteResult rideRouteResult, int code) {
+    public void onRideRouteSearched(RideRouteResult rideRouteResult, int code) {
         aMap.clear();// 清理地图上的所有覆盖物
         if (code == AMapException.CODE_AMAP_SUCCESS) {
             if (rideRouteResult != null && rideRouteResult.getPaths() != null) {
@@ -419,9 +462,20 @@ public class RouteActivity extends AppCompatActivity implements
 
                     int dis = (int) ridePath.getDistance();
                     int dur = (int) ridePath.getDuration();
-                    String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
-                    Log.d(TAG, des);
+                    String des = MapUtil.getFriendlyTime(dur)+"("+MapUtil.getFriendlyLength(dis)+")";
 
+                    tvTime.setText(des);
+                    bottomLayout.setVisibility(View.VISIBLE);
+                    bottomLayout.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent intent = new Intent(RouteActivity.this,
+                                    RouteDetailActivity.class);
+                            intent.putExtra("type",1);
+                            intent.putExtra("path", ridePath);
+                            startActivity(intent);
+                        }
+                    });
                 } else if (rideRouteResult.getPaths() == null) {
                     showMsg("对不起，没有搜索到相关数据！");
                 }
