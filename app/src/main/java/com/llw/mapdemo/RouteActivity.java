@@ -2,12 +2,17 @@ package com.llw.mapdemo;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -27,6 +32,11 @@ import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.services.core.AMapException;
 import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.geocoder.GeocodeAddress;
+import com.amap.api.services.geocoder.GeocodeQuery;
+import com.amap.api.services.geocoder.GeocodeResult;
+import com.amap.api.services.geocoder.GeocodeSearch;
+import com.amap.api.services.geocoder.RegeocodeResult;
 import com.amap.api.services.route.BusPath;
 import com.amap.api.services.route.BusRouteResult;
 import com.amap.api.services.route.DrivePath;
@@ -42,6 +52,8 @@ import com.llw.mapdemo.overlay.RideRouteOverlay;
 import com.llw.mapdemo.overlay.WalkRouteOverlay;
 import com.llw.mapdemo.util.MapUtil;
 
+import java.util.List;
+
 import static com.llw.mapdemo.util.MapUtil.convertToLatLng;
 import static com.llw.mapdemo.util.MapUtil.convertToLatLonPoint;
 
@@ -52,7 +64,8 @@ import static com.llw.mapdemo.util.MapUtil.convertToLatLonPoint;
  */
 public class RouteActivity extends AppCompatActivity implements
         AMapLocationListener, LocationSource, AMap.OnMapClickListener,
-        RouteSearch.OnRouteSearchListener {
+        RouteSearch.OnRouteSearchListener, EditText.OnKeyListener,
+        GeocodeSearch.OnGeocodeSearchListener {
 
     private static final String TAG = "RouteActivity";
     //地图
@@ -93,6 +106,14 @@ public class RouteActivity extends AppCompatActivity implements
     //花费时间
     private TextView tvTime;
 
+    //起点、终点
+    private EditText etStartAddress, etEndAddress;
+
+    //地理编码搜索
+    private GeocodeSearch geocodeSearch;
+    //解析成功标识码
+    private static final int PARSE_SUCCESS_CODE = 1000;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,6 +140,12 @@ public class RouteActivity extends AppCompatActivity implements
         bottomLayout = findViewById(R.id.bottom_layout);
 
         tvTime = findViewById(R.id.tv_time);
+
+        etStartAddress = findViewById(R.id.et_start_address);
+
+        etEndAddress = findViewById(R.id.et_end_address);
+        //键盘按键监听
+        etEndAddress.setOnKeyListener(this);
 
         //将可选内容与ArrayAdapter连接起来
         arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, travelModeArray);
@@ -193,6 +220,13 @@ public class RouteActivity extends AppCompatActivity implements
         aMap.setMyLocationEnabled(true);
         //地图点击监听
         aMap.setOnMapClickListener(this);
+
+
+        //构造 GeocodeSearch 对象
+        geocodeSearch = new GeocodeSearch(this);
+        //设置监听
+        geocodeSearch.setOnGeocodeSearchListener(this);
+
     }
 
     @Override
@@ -201,6 +235,9 @@ public class RouteActivity extends AppCompatActivity implements
             if (aMapLocation.getErrorCode() == 0) {
                 //地址
                 String address = aMapLocation.getAddress();
+                //设置当前所在地
+                etStartAddress.setText(address);
+                etStartAddress.setEnabled(false);//禁用输入
 
                 city = aMapLocation.getCity();
 
@@ -314,7 +351,7 @@ public class RouteActivity extends AppCompatActivity implements
                         public void onClick(View v) {
                             Intent intent = new Intent(RouteActivity.this,
                                     RouteDetailActivity.class);
-                            intent.putExtra("type",3);
+                            intent.putExtra("type", 3);
                             intent.putExtra("path", busPath);
                             startActivity(intent);
                         }
@@ -366,7 +403,7 @@ public class RouteActivity extends AppCompatActivity implements
                         public void onClick(View v) {
                             Intent intent = new Intent(RouteActivity.this,
                                     RouteDetailActivity.class);
-                            intent.putExtra("type",2);
+                            intent.putExtra("type", 2);
                             intent.putExtra("path", drivePath);
                             startActivity(intent);
                         }
@@ -409,7 +446,7 @@ public class RouteActivity extends AppCompatActivity implements
 
                     int dis = (int) walkPath.getDistance();
                     int dur = (int) walkPath.getDuration();
-                    String des = MapUtil.getFriendlyTime(dur)+"("+MapUtil.getFriendlyLength(dis)+")";
+                    String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
                     //显示步行花费时间
                     tvTime.setText(des);
                     bottomLayout.setVisibility(View.VISIBLE);
@@ -419,7 +456,7 @@ public class RouteActivity extends AppCompatActivity implements
                         public void onClick(View v) {
                             Intent intent = new Intent(RouteActivity.this,
                                     RouteDetailActivity.class);
-                            intent.putExtra("type",0);
+                            intent.putExtra("type", 0);
                             intent.putExtra("path", walkPath);
                             startActivity(intent);
                         }
@@ -462,7 +499,7 @@ public class RouteActivity extends AppCompatActivity implements
 
                     int dis = (int) ridePath.getDistance();
                     int dur = (int) ridePath.getDuration();
-                    String des = MapUtil.getFriendlyTime(dur)+"("+MapUtil.getFriendlyLength(dis)+")";
+                    String des = MapUtil.getFriendlyTime(dur) + "(" + MapUtil.getFriendlyLength(dis) + ")";
 
                     tvTime.setText(des);
                     bottomLayout.setVisibility(View.VISIBLE);
@@ -471,7 +508,7 @@ public class RouteActivity extends AppCompatActivity implements
                         public void onClick(View v) {
                             Intent intent = new Intent(RouteActivity.this,
                                     RouteDetailActivity.class);
-                            intent.putExtra("type",1);
+                            intent.putExtra("type", 1);
                             intent.putExtra("path", ridePath);
                             startActivity(intent);
                         }
@@ -559,4 +596,54 @@ public class RouteActivity extends AppCompatActivity implements
     }
 
 
+    @Override
+    public void onRegeocodeSearched(RegeocodeResult regeocodeResult, int i) {
+
+    }
+
+    /**
+     * 地址转坐标
+     *
+     * @param geocodeResult
+     * @param rCode
+     */
+    @Override
+    public void onGeocodeSearched(GeocodeResult geocodeResult, int rCode) {
+        if (rCode == PARSE_SUCCESS_CODE) {
+            List<GeocodeAddress> geocodeAddressList = geocodeResult.getGeocodeAddressList();
+            if (geocodeAddressList != null && geocodeAddressList.size() > 0) {
+                //终点
+                mEndPoint = geocodeAddressList.get(0).getLatLonPoint();
+                //开始路线搜索
+                startRouteSearch();
+            }
+
+        } else {
+            showMsg("获取坐标失败");
+        }
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
+            //获取输入框的值
+
+            String endAddress = etEndAddress.getText().toString().trim();
+            if (endAddress.isEmpty()) {
+                showMsg("请输入要前往的目的地");
+            } else {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                //隐藏软键盘
+                imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+
+                //通过输入的目的地转为经纬度，然后进行地图上添加标点，最后计算出行路线规划
+
+                // name表示地址，第二个参数表示查询城市，中文或者中文全拼，citycode、adcode
+                GeocodeQuery query = new GeocodeQuery(endAddress, city);
+                geocodeSearch.getFromLocationNameAsyn(query);
+            }
+            return true;
+        }
+        return false;
+    }
 }
