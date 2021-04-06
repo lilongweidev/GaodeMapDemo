@@ -116,6 +116,9 @@ public class MainActivity extends AppCompatActivity implements
     //标点列表
     private List<Marker> markerList = new ArrayList<>();
 
+    //城市
+    private String city;
+
 
 
     @Override
@@ -300,6 +303,8 @@ public class MainActivity extends AppCompatActivity implements
             if (aMapLocation.getErrorCode() == 0) {
                 //地址
                 String address = aMapLocation.getAddress();
+                //城市赋值
+                city = aMapLocation.getCity();
                 //获取纬度
                 double latitude = aMapLocation.getLatitude();
                 //获取经度
@@ -589,7 +594,7 @@ public class MainActivity extends AppCompatActivity implements
                 imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
 
                 // name表示地址，第二个参数表示查询城市，中文或者中文全拼，citycode、adcode
-                GeocodeQuery query = new GeocodeQuery(address, "深圳");
+                GeocodeQuery query = new GeocodeQuery(address, city);
                 geocodeSearch.getFromLocationNameAsyn(query);
             }
             return true;
