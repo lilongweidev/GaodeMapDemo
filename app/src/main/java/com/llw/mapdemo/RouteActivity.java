@@ -114,6 +114,11 @@ public class RouteActivity extends AppCompatActivity implements
     //解析成功标识码
     private static final int PARSE_SUCCESS_CODE = 1000;
 
+    //定位地址
+    private String locationAddress;
+    //起点地址转坐标标识   1
+    private int tag = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,6 +150,7 @@ public class RouteActivity extends AppCompatActivity implements
 
         etEndAddress = findViewById(R.id.et_end_address);
         //键盘按键监听
+        etStartAddress.setOnKeyListener(this);
         etEndAddress.setOnKeyListener(this);
 
         //将可选内容与ArrayAdapter连接起来
@@ -234,10 +240,10 @@ public class RouteActivity extends AppCompatActivity implements
         if (aMapLocation != null) {
             if (aMapLocation.getErrorCode() == 0) {
                 //地址
-                String address = aMapLocation.getAddress();
+                locationAddress = aMapLocation.getAddress();
                 //设置当前所在地
-                etStartAddress.setText(address);
-                etStartAddress.setEnabled(false);//禁用输入
+                etStartAddress.setText(locationAddress);
+                //etStartAddress.setEnabled(false);//禁用输入
 
                 city = aMapLocation.getCity();
 
@@ -246,7 +252,7 @@ public class RouteActivity extends AppCompatActivity implements
                 //获取经度
                 double longitude = aMapLocation.getLongitude();
                 Log.d(TAG, aMapLocation.getCity());
-                Log.d(TAG, address);
+                Log.d(TAG, locationAddress);
 
                 //设置起点
                 mStartPoint = convertToLatLonPoint(new LatLng(latitude, longitude));
@@ -612,12 +618,20 @@ public class RouteActivity extends AppCompatActivity implements
         if (rCode == PARSE_SUCCESS_CODE) {
             List<GeocodeAddress> geocodeAddressList = geocodeResult.getGeocodeAddressList();
             if (geocodeAddressList != null && geocodeAddressList.size() > 0) {
-                //终点
-                mEndPoint = geocodeAddressList.get(0).getLatLonPoint();
-                //开始路线搜索
-                startRouteSearch();
-            }
+                //判断是不是起点的搜索
+                if (tag == 1) {
+                    //起点
+                    mStartPoint = geocodeAddressList.get(0).getLatLonPoint();
+                } else {
+                    //终点
+                    mEndPoint = geocodeAddressList.get(0).getLatLonPoint();
+                }
 
+                if (mStartPoint != null && mEndPoint != null) {
+                    //开始路线搜索
+                    startRouteSearch();
+                }
+            }
         } else {
             showMsg("获取坐标失败");
         }
@@ -626,22 +640,40 @@ public class RouteActivity extends AppCompatActivity implements
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_UP) {
-            //获取输入框的值
-
+            //获取输入框的值 出发地（起点）
+            String startAddress = etStartAddress.getText().toString().trim();
+            //获取输入框的值 目的地（终点）
             String endAddress = etEndAddress.getText().toString().trim();
+
+            //判断出发地是否有值  不管这个值是定位还是手动输入
+            if (startAddress.isEmpty()) {
+                showMsg("请输入当前的出发地");
+                return false;
+            }
+            //判断目的地是否有值
             if (endAddress.isEmpty()) {
                 showMsg("请输入要前往的目的地");
-            } else {
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                //隐藏软键盘
-                imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
-
-                //通过输入的目的地转为经纬度，然后进行地图上添加标点，最后计算出行路线规划
-
-                // name表示地址，第二个参数表示查询城市，中文或者中文全拼，citycode、adcode
-                GeocodeQuery query = new GeocodeQuery(endAddress, city);
-                geocodeSearch.getFromLocationNameAsyn(query);
+                return false;
             }
+
+            //当出发地输入框有值的时候，判断这个值是否是定位的地址，是则说明你没有更改过，则不需要进行地址转坐标，不是则需要转换。
+            if (!locationAddress.equals(startAddress)) {
+                tag = 1;
+                GeocodeQuery startQuery = new GeocodeQuery(startAddress, city);
+                geocodeSearch.getFromLocationNameAsyn(startQuery);
+            } else {
+                tag = -1;
+            }
+
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            //隐藏软键盘
+            imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+
+            //通过输入的目的地转为经纬度，然后进行地图上添加标点，最后计算出行路线规划
+
+            // name表示地址，第二个参数表示查询城市，中文或者中文全拼，citycode、adcode
+            GeocodeQuery endQuery = new GeocodeQuery(endAddress, city);
+            geocodeSearch.getFromLocationNameAsyn(endQuery);
             return true;
         }
         return false;

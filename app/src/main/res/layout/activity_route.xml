@@ -57,8 +57,10 @@
                 android:layout_marginStart="12dp"
                 android:layout_toRightOf="@+id/tv_start"
                 android:background="@null"
+                android:imeOptions="actionSearch"
+                android:singleLine="true"
                 android:textColor="#000"
-                android:textSize="@dimen/sp_12" />
+                android:textSize="@dimen/sp_14" />
 
             <View
                 android:layout_width="match_parent"
