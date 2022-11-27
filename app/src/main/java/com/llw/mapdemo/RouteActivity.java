@@ -176,7 +176,11 @@ public class RouteActivity extends AppCompatActivity implements
      * 初始化路线
      */
     private void initRoute() {
-        routeSearch = new RouteSearch(this);
+        try {
+            routeSearch = new RouteSearch(this);
+        } catch (AMapException e) {
+            e.printStackTrace();
+        }
         routeSearch.setRouteSearchListener(this);
     }
 
@@ -185,15 +189,21 @@ public class RouteActivity extends AppCompatActivity implements
      */
     private void initLocation() {
         //初始化定位
-        mLocationClient = new AMapLocationClient(getApplicationContext());
-        mLocationClient.setLocationListener(this);
-        mLocationOption = new AMapLocationClientOption();
-        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-        mLocationOption.setOnceLocationLatest(true);
-        mLocationOption.setNeedAddress(true);
-        mLocationOption.setHttpTimeOut(20000);
-        mLocationOption.setLocationCacheEnable(false);
-        mLocationClient.setLocationOption(mLocationOption);
+        try {
+            mLocationClient = new AMapLocationClient(getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (mLocationClient != null) {
+            mLocationClient.setLocationListener(this);
+            mLocationOption = new AMapLocationClientOption();
+            mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+            mLocationOption.setOnceLocationLatest(true);
+            mLocationOption.setNeedAddress(true);
+            mLocationOption.setHttpTimeOut(20000);
+            mLocationOption.setLocationCacheEnable(false);
+            mLocationClient.setLocationOption(mLocationOption);
+        }
     }
 
     /**
@@ -229,10 +239,13 @@ public class RouteActivity extends AppCompatActivity implements
 
 
         //构造 GeocodeSearch 对象
-        geocodeSearch = new GeocodeSearch(this);
-        //设置监听
-        geocodeSearch.setOnGeocodeSearchListener(this);
-
+        try {
+            geocodeSearch = new GeocodeSearch(this);
+            //设置监听
+            geocodeSearch.setOnGeocodeSearchListener(this);
+        } catch (AMapException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

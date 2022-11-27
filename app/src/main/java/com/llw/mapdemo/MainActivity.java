@@ -41,6 +41,7 @@ import com.amap.api.maps.model.MarkerOptions;
 import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.maps.model.animation.Animation;
 import com.amap.api.maps.model.animation.RotateAnimation;
+import com.amap.api.services.core.AMapException;
 import com.amap.api.services.core.LatLonPoint;
 import com.amap.api.services.core.PoiItem;
 import com.amap.api.services.geocoder.GeocodeAddress;
@@ -148,24 +149,30 @@ public class MainActivity extends AppCompatActivity implements
      */
     private void initLocation() {
         //初始化定位
-        mLocationClient = new AMapLocationClient(getApplicationContext());
-        //设置定位回调监听
-        mLocationClient.setLocationListener(this);
-        //初始化AMapLocationClientOption对象
-        mLocationOption = new AMapLocationClientOption();
-        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
-        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-        //获取最近3s内精度最高的一次定位结果：
-        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
-        mLocationOption.setOnceLocationLatest(true);
-        //设置是否返回地址信息（默认返回地址信息）
-        mLocationOption.setNeedAddress(true);
-        //设置定位请求超时时间，单位是毫秒，默认30000毫秒，建议超时时间不要低于8000毫秒。
-        mLocationOption.setHttpTimeOut(20000);
-        //关闭缓存机制，高精度定位会产生缓存。
-        mLocationOption.setLocationCacheEnable(false);
-        //给定位客户端对象设置定位参数
-        mLocationClient.setLocationOption(mLocationOption);
+        try {
+            mLocationClient = new AMapLocationClient(getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (mLocationClient != null) {
+            //设置定位回调监听
+            mLocationClient.setLocationListener(this);
+            //初始化AMapLocationClientOption对象
+            mLocationOption = new AMapLocationClientOption();
+            //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
+            mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+            //获取最近3s内精度最高的一次定位结果：
+            //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+            mLocationOption.setOnceLocationLatest(true);
+            //设置是否返回地址信息（默认返回地址信息）
+            mLocationOption.setNeedAddress(true);
+            //设置定位请求超时时间，单位是毫秒，默认30000毫秒，建议超时时间不要低于8000毫秒。
+            mLocationOption.setHttpTimeOut(20000);
+            //关闭缓存机制，高精度定位会产生缓存。
+            mLocationOption.setLocationCacheEnable(false);
+            //给定位客户端对象设置定位参数
+            mLocationClient.setLocationOption(mLocationOption);
+        }
     }
 
     /**
@@ -226,7 +233,11 @@ public class MainActivity extends AppCompatActivity implements
         aMap.setOnInfoWindowClickListener(this);
 
         //构造 GeocodeSearch 对象
-        geocodeSearch = new GeocodeSearch(this);
+        try {
+            geocodeSearch = new GeocodeSearch(this);
+        } catch (AMapException e) {
+            e.printStackTrace();
+        }
         //设置监听
         geocodeSearch.setOnGeocodeSearchListener(this);
     }
@@ -432,7 +443,11 @@ public class MainActivity extends AppCompatActivity implements
         //设置查询页码
         query.setPageNum(1);
         //构造 PoiSearch 对象
-        poiSearch = new PoiSearch(this, query);
+        try {
+            poiSearch = new PoiSearch(this, query);
+        } catch (AMapException e) {
+            e.printStackTrace();
+        }
         //设置搜索回调监听
         poiSearch.setOnPoiSearchListener(this);
         //发起搜索附近POI异步请求

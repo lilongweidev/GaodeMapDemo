@@ -9,14 +9,11 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.amap.api.services.busline.BusStationItem;
-import com.amap.api.services.route.BusStep;
 import com.amap.api.services.route.RailwayStationItem;
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.chad.library.adapter.base.BaseViewHolder;
+import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 import com.llw.mapdemo.R;
 import com.llw.mapdemo.util.SchemeBusStep;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,8 +42,8 @@ public class BusSegmentListAdapter extends BaseQuickAdapter<SchemeBusStep, BaseV
         ImageView splitLine = helper.getView(R.id.bus_seg_split_line);
         final LinearLayout expandContent = helper.getView(R.id.expand_content);
 
-
-        if (helper.getAdapterPosition() == 0) {
+        int position = getItemPosition(item);
+        if (position == 0) {
             busDirIcon.setImageResource(R.drawable.dir_start);
             busLineName.setText("出发");
             busDirUp.setVisibility(View.INVISIBLE);
@@ -54,7 +51,7 @@ public class BusSegmentListAdapter extends BaseQuickAdapter<SchemeBusStep, BaseV
             splitLine.setVisibility(View.GONE);
             busStationNum.setVisibility(View.GONE);
             busExpandImage.setVisibility(View.GONE);
-        } else if (helper.getAdapterPosition() == mBusStepList.size() - 1) {
+        } else if (position == mBusStepList.size() - 1) {
             busDirIcon.setImageResource(R.drawable.dir_end);
             busLineName.setText("到达终点");
             busDirUp.setVisibility(View.VISIBLE);
@@ -144,7 +141,7 @@ public class BusSegmentListAdapter extends BaseQuickAdapter<SchemeBusStep, BaseV
      * @param expandContent
      */
     private void addBusStation(BusStationItem station, LinearLayout expandContent) {
-        LinearLayout ll = (LinearLayout) View.inflate(mContext,
+        LinearLayout ll = (LinearLayout) View.inflate(getContext(),
                 R.layout.item_segment_ex, null);
         TextView tv = ll.findViewById(R.id.bus_line_station_name);
         tv.setText(station.getBusStationName());
@@ -157,7 +154,7 @@ public class BusSegmentListAdapter extends BaseQuickAdapter<SchemeBusStep, BaseV
      * @param expandContent
      */
     private void addRailwayStation(RailwayStationItem station, LinearLayout expandContent) {
-        LinearLayout ll = (LinearLayout) View.inflate(mContext,
+        LinearLayout ll = (LinearLayout) View.inflate(getContext(),
                 R.layout.item_segment_ex, null);
         TextView tv = ll
                 .findViewById(R.id.bus_line_station_name);

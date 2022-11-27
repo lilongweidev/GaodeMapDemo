@@ -8,11 +8,10 @@ import androidx.annotation.Nullable;
 
 import com.amap.api.services.route.WalkStep;
 import com.chad.library.adapter.base.BaseQuickAdapter;
-import com.chad.library.adapter.base.BaseViewHolder;
+import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 import com.llw.mapdemo.R;
 import com.llw.mapdemo.util.MapUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,14 +36,14 @@ public class WalkSegmentListAdapter extends BaseQuickAdapter<WalkStep, BaseViewH
         ImageView dirUp = helper.getView(R.id.bus_dir_icon_up);
         ImageView dirDown = helper.getView(R.id.bus_dir_icon_down);
         ImageView splitLine = helper.getView(R.id.bus_seg_split_line);
-
-        if (helper.getAdapterPosition() == 0) {
+        int position = getItemPosition(item);
+        if (position == 0) {
             dirIcon.setImageResource(R.drawable.dir_start);
             lineName.setText("出发");
             dirUp.setVisibility(View.INVISIBLE);
             dirDown.setVisibility(View.VISIBLE);
             splitLine.setVisibility(View.INVISIBLE);
-        } else if (helper.getAdapterPosition() == mItemList.size() - 1) {
+        } else if (position == mItemList.size() - 1) {
             dirIcon.setImageResource(R.drawable.dir_end);
             lineName.setText("到达终点");
             dirUp.setVisibility(View.VISIBLE);
